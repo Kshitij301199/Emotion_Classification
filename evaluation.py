@@ -84,7 +84,8 @@ def class_f1_score(conf_matrix, epsilon=1e-7):
 def plot_confusion_matrix(conf_matrix, modelname):
     labels = {0: "sadness", 1: "joy", 2: "love", 3: "anger", 4: "fear", 5: "surprise"}
     plt.figure(figsize=(7,7))
-    plt.imshow(conf_matrix, cmap='coolwarm', interpolation='nearest', vmax=3000)
+    norm_conf_mat = np.divide(conf_matrix, np.sum(conf_matrix, axis= 0))
+    plt.imshow(norm_conf_mat, cmap='coolwarm', interpolation='nearest')
     plt.colorbar()
     
     plt.xticks(list(labels.keys()), [labels[i] for i in range(len(labels))])
@@ -94,6 +95,6 @@ def plot_confusion_matrix(conf_matrix, modelname):
     plt.ylabel('True label',fontdict={"fontweight":"bold"})
     plt.title('Confusion Matrix',fontdict={"fontsize":15,"fontweight":"bold"})
     if modelname == 'bilstm':
-        plt.savefig(fname= "images/bilstm_confmat.png", dpi=300)
+        plt.savefig(fname= "./images/bilstm_confmat.png", dpi=300)
     elif modelname == 'cnn':
-        plt.savefig(fname= "images/cnn_confmat.png", dpi=300)
+        plt.savefig(fname= "./images/cnn_confmat.png", dpi=300)

@@ -1,5 +1,7 @@
+from typing import List, AnyStr, Dict
+
 import torch
-from typing import List, AnyStr
+import numpy as np
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -7,6 +9,7 @@ from nltk.stem import PorterStemmer
 
 from torch.utils.data import Dataset, DataLoader
 from tensorflow.keras.preprocessing.text import Tokenizer
+from sklearn.utils.class_weight import compute_class_weight
 
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -71,7 +74,35 @@ def plot_loss_acc(loss: List, accs: List, modelname: AnyStr) -> None:
     sns.lineplot(ax= axes[0], x= range(num_of_items), y= loss)
     sns.lineplot(ax= axes[1], x= range(num_of_items), y= accs)
     if modelname == 'bilstm':
-        fig.savefig(fname= "images/bilstm_loss_acc.png", dpi=300)
+        fig.savefig(fname= "./images/bilstm_loss_acc.png", dpi=300)
     elif modelname == 'cnn':
-        fig.savefig(fname= "images/cnn_loss_acc.png", dpi=300)
-        
+        fig.savefig(fname= "./images/cnn_loss_acc.png", dpi=300)
+               
+def save_model(model, filepath):
+    """
+    Save PyTorch model parameters to a file.
+
+    Args:
+    - model (torch.nn.Module): PyTorch model to save.
+    - filepath (str): Filepath to save the model parameters.
+    """
+    torch.save(model.state_dict(), filepath)
+    print(f"Model parameters saved to '{filepath}'")
+
+def load_model(model, filepath):
+    """
+    Load PyTorch model parameters from a file.
+
+    Args:
+    - model (torch.nn.Module): PyTorch model to load parameters into.
+    - filepath (str): Filepath to the saved model parameters.
+    """
+    model.load_state_dict(torch.load(filepath))
+    print(f"Model parameters loaded from '{filepath}'")
+    
+def get_class_weights(y_train) -> Dict:
+    class_weights = compute_class_weight(class_weight = "balanced",
+                                        classes = np.unique(y_train),
+                                        y = y_train)
+    class_weights = torch.FloatTensor(class_weights)
+    return class_weights

@@ -1,17 +1,19 @@
+from typing import Dict
+
 import torch
 import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from evaluation import calculate_confusion_matrix, class_accuracy, class_f1_score
 
-def train(model, train_dataloader, val_dataloader, num_epochs, learning_rate):
+def train(model, train_dataloader, val_dataloader, num_epochs:int, learning_rate:float, class_weights:torch.FloatTensor):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss(weight= class_weights)
     optimizer = torch.optim.Adam(model.parameters(), lr= learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                            T_max= num_epochs,
-                                                           eta_min= learning_rate * 1e-2)    
+                                                           eta_min= learning_rate / 5)    
 
     epoch_loss, epoch_acc = [], []
     for epoch in range(num_epochs):
@@ -19,10 +21,10 @@ def train(model, train_dataloader, val_dataloader, num_epochs, learning_rate):
         model.train()
         train_running_loss = 0.0
         train_correct_predictions = 0
-        train_total_predictions = 0    
+        train_total_predictions = 0
         for batch in tqdm(train_dataloader):
             inputs = batch['padded'].to(device)
-            labels = batch['label'].to(device)    
+            labels = batch['label'].to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, labels)
