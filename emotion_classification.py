@@ -30,34 +30,27 @@ def main():
         print("Data tokenized and stemmed!")
         
         x_train, x_test, y_train, y_test = train_test_split(data['tokens_stemm'], data['label'], test_size=0.2, random_state=42)
-        # 0.125 x 0.8 = 0.1
-        x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.125, random_state=42)
         class_weights = get_class_weights(data['label'])
         train_data = pd.concat((x_train,y_train), axis=1).reset_index()
-        val_data = pd.concat((x_val,y_val), axis=1).reset_index()
         test_data = pd.concat((x_test,y_test), axis=1).reset_index()
-        print(f"Train size: {len(train_data)}\tValidation size: {len(val_data)}\tTest size: {len(test_data)}")
+        print(f"Train size: {len(train_data)}\tTest size: {len(test_data)}")
         tokenizer = fit_tokenizer(x_train)
         train_data['padded'] = train_data['tokens_stemm'].apply(pad_sequence, tokenizer= tokenizer)
-        val_data['padded'] = val_data['tokens_stemm'].apply(pad_sequence, tokenizer= tokenizer)
         test_data['padded'] = test_data['tokens_stemm'].apply(pad_sequence, tokenizer= tokenizer)
         print("Data prepared for model!")
         train_dataset = PandasDataset(train_data)
-        val_dataset = PandasDataset(val_data)
         test_dataset = PandasDataset(test_data)
         train_batched = get_batched_data(train_dataset, batch_size= 256)
-        val_batched = get_batched_data(val_dataset, batch_size= 64)
         test_batched = get_batched_data(test_dataset, batch_size= 64)
         print(f"{'Starting Training':-^100}")
         if args.model_name.lower() == 'bilstm':
-            model = BiLSTMModel()
-            print(model)
+            model = BiLSTMModel()    
         elif args.model_name.lower() == 'cnn':
             model = CNNTextClassifier()
-            print(model)
-        model, losses, accs = train(model, train_batched,
-                                    val_batched, num_epochs= 10,
-                                    learning_rate= 0.001,
+        print(model)
+        print(f"Number of parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
+        model, losses, accs = train(model, train_batched, num_epochs= 4,
+                                    learning_rate= 0.0005,
                                     class_weights= class_weights)
         plot_loss_acc(loss= losses, accs= accs, modelname= args.model_name)
         conf_mat = evaluate(model, test_batched)

@@ -7,8 +7,9 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.stem import PorterStemmer
 
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, Subset
 from tensorflow.keras.preprocessing.text import Tokenizer
+from sklearn.model_selection import KFold
 from sklearn.utils.class_weight import compute_class_weight
 
 import seaborn as sns
@@ -100,9 +101,40 @@ def load_model(model, filepath):
     model.load_state_dict(torch.load(filepath))
     print(f"Model parameters loaded from '{filepath}'")
     
-def get_class_weights(y_train) -> Dict:
+def get_class_weights(y_train) -> torch.FloatTensor:
     class_weights = compute_class_weight(class_weight = "balanced",
                                         classes = np.unique(y_train),
                                         y = y_train)
     class_weights = torch.FloatTensor(class_weights)
     return class_weights
+
+def split_train_val_dataloader(train_dataloader, val_size=0.25, shuffle=True, random_state=None):
+    # Get indices for the train DataLoader
+    train_indices = list(range(len(train_dataloader.dataset)))
+    
+    # Initialize KFold with shuffle and random_state parameters
+    kfold = KFold(n_splits=int(1 / val_size), shuffle=shuffle, random_state=random_state)
+    
+    # Split train indices into train and validation indices
+    train_indices_list = []
+    val_indices_list = []
+    for train_idx, val_idx in kfold.split(train_indices):
+        train_indices_list.append(train_idx)
+        val_indices_list.append(val_idx)
+    
+    # Separate train and validation datasets
+    train_datasets = []
+    val_datasets = []
+    for train_idx, val_idx in zip(train_indices_list, val_indices_list):
+        train_datasets.append(Subset(train_dataloader.dataset, train_idx))
+        val_datasets.append(Subset(train_dataloader.dataset, val_idx))
+    
+    # Create train and validation DataLoaders
+    train_loaders = [DataLoader(dataset, batch_size=train_dataloader.batch_size, shuffle= True,
+                                num_workers=train_dataloader.num_workers, pin_memory=train_dataloader.pin_memory)
+                     for dataset in train_datasets]
+    val_loaders = [DataLoader(dataset, batch_size=train_dataloader.batch_size, shuffle=False,
+                              num_workers=train_dataloader.num_workers, pin_memory=train_dataloader.pin_memory)
+                   for dataset in val_datasets]
+    
+    return train_loaders, val_loaders
