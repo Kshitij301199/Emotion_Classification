@@ -1,3 +1,4 @@
+from itertools import product
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -105,6 +106,12 @@ def plot_confusion_matrix(conf_matrix, modelname):
     
     plt.xticks(list(labels.keys()), [labels[i] for i in range(len(labels))])
     plt.yticks(list(labels.keys()), [labels[i] for i in range(len(labels))])
+    
+    fmt = '.2f'
+    for i, j in product(range(norm_conf_mat.shape[0]), range(norm_conf_mat.shape[1])):
+        plt.text(j, i, format(norm_conf_mat[i, j], fmt),
+                 horizontalalignment="center",
+                 color="black")
     
     plt.xlabel('Predicted label',fontdict={"fontweight":"bold"})
     plt.ylabel('True label',fontdict={"fontweight":"bold"})

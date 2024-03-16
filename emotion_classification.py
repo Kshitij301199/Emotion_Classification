@@ -110,6 +110,12 @@ def main():
         f1_scores = class_f1_score(conf_mat)
         precisions, recalls = class_wise_precision_recall(conf_mat)
         
+        average_accuracy = np.mean(accuracies)
+        average_f1 = np.mean(f1_scores)
+
+        print(f"Average acccuracy: {average_accuracy*100:.2f}%")
+        print(f"Average F1: {average_f1*100:.2f}%")
+        
         output_df = pd.DataFrame({"Emotion":['Sadness','Joy','Love','Anger','Fear','Surprise'],
                                   'Accuracy':accuracies, 'F1_Score':f1_scores,
                                   'Precision':precisions, 'Recall':recalls})
