@@ -87,7 +87,7 @@ def save_model(model, filepath):
     - model (torch.nn.Module): PyTorch model to save.
     - filepath (str): Filepath to save the model parameters.
     """
-    torch.save(model.state_dict(), filepath)
+    torch.save(model, filepath)
     print(f"Model parameters saved to '{filepath}'")
 
 def load_model(model, filepath):
@@ -98,9 +98,10 @@ def load_model(model, filepath):
     - model (torch.nn.Module): PyTorch model to load parameters into.
     - filepath (str): Filepath to the saved model parameters.
     """
-    model.load_state_dict(torch.load(filepath))
+    model = torch.load(filepath)
     print(f"Model parameters loaded from '{filepath}'")
-    
+    return model
+
 def get_class_weights(y_train) -> torch.FloatTensor:
     class_weights = compute_class_weight(class_weight = "balanced",
                                         classes = np.unique(y_train),

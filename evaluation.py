@@ -81,6 +81,21 @@ def class_f1_score(conf_matrix, epsilon=1e-7):
 
     return f1_scores
 
+def class_wise_precision_recall(conf_matrix: np.ndarray):
+    num_classes = conf_matrix.shape[0]
+    precision = np.zeros(num_classes)
+    recall = np.zeros(num_classes)
+
+    for i in range(num_classes):
+        true_positives = conf_matrix[i, i]
+        false_positives = np.sum(conf_matrix[:, i]) - true_positives
+        false_negatives = np.sum(conf_matrix[i, :]) - true_positives
+
+        precision[i] = true_positives / (true_positives + false_positives)
+        recall[i] = true_positives / (true_positives + false_negatives)
+
+    return precision, recall
+
 def plot_confusion_matrix(conf_matrix, modelname):
     labels = {0: "sadness", 1: "joy", 2: "love", 3: "anger", 4: "fear", 5: "surprise"}
     plt.figure(figsize=(7,7))

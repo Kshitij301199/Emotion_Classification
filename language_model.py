@@ -12,7 +12,7 @@ def train(model, train_dataloader, num_epochs:int, learning_rate:float, class_we
     optimizer = torch.optim.Adam(model.parameters(), lr= learning_rate)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                            T_max= num_epochs*4,
-                                                           eta_min= learning_rate / 50)
+                                                           eta_min= learning_rate / 10)
     print(criterion)
     print(optimizer)
     print(scheduler)
