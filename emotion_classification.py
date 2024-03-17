@@ -1,7 +1,4 @@
-
-import os
 import sys
-import json
 import pickle
 import argparse
 import torch
@@ -25,6 +22,7 @@ def main():
     parser.add_argument('--model_name', type=str, help='Model name to train (required if --train|--evaluate is specified)')
 
     args = parser.parse_args()
+    # TRAIN FLAG
     if args.train:
         if args.model_name.lower() == 'bilstm':
             model = BiLSTMModel()

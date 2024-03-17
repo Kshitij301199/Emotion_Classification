@@ -5,14 +5,14 @@ from tqdm import tqdm
 from utils import split_train_val_dataloader
 from evaluation import calculate_confusion_matrix, class_accuracy, class_f1_score
 
-def train(model, train_dataloader, num_epochs:int, learning_rate:float, class_weights:torch.FloatTensor):
+def train(model, train_dataloader, num_epochs:int, lr:float, lr_floor:float, class_weights:torch.FloatTensor):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     criterion = nn.CrossEntropyLoss(weight= class_weights)
-    optimizer = torch.optim.Adam(model.parameters(), lr= learning_rate)
+    optimizer = torch.optim.Adam(model.parameters(), lr= lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
                                                            T_max= num_epochs*4,
-                                                           eta_min= learning_rate / 20)
+                                                           eta_min= lr_floor)
     print(criterion)
     print(optimizer)
     print(scheduler)

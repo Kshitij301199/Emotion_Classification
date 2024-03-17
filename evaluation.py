@@ -97,8 +97,9 @@ def class_wise_precision_recall(conf_matrix: np.ndarray):
 
     return precision, recall
 
-def plot_confusion_matrix(conf_matrix, modelname):
-    labels = {0: "sadness", 1: "joy", 2: "love", 3: "anger", 4: "fear", 5: "surprise"}
+def plot_confusion_matrix(conf_matrix, modelname, plot= False):
+    labels = {0: "SADNESS", 1: "JOY", 2: "LOVE", 3: "ANGER", 4: "FEAR", 5: "SURPRISE"}
+    plt.style.use("seaborn")
     plt.figure(figsize=(7,7))
     norm_conf_mat = np.divide(conf_matrix, np.sum(conf_matrix, axis= 0))
     plt.imshow(norm_conf_mat, cmap='coolwarm', interpolation='nearest')
@@ -116,7 +117,11 @@ def plot_confusion_matrix(conf_matrix, modelname):
     plt.xlabel('Predicted label',fontdict={"fontweight":"bold"})
     plt.ylabel('True label',fontdict={"fontweight":"bold"})
     plt.title('Confusion Matrix',fontdict={"fontsize":15,"fontweight":"bold"})
-    if modelname == 'bilstm':
-        plt.savefig(fname= "./images/bilstm_confmat.png", dpi=300)
-    elif modelname == 'cnn':
-        plt.savefig(fname= "./images/cnn_confmat.png", dpi=300)
+    plt.grid(False)
+    if plot:
+        plt.show()
+    else:
+        if modelname == 'bilstm':
+            plt.savefig(fname= "./images/bilstm_confmat.png", dpi=300)
+        elif modelname == 'cnn':
+            plt.savefig(fname= "./images/cnn_confmat.png", dpi=300)

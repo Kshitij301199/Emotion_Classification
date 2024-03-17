@@ -25,10 +25,6 @@ def remove_stopwords(tokens: List) -> AnyStr:
     # out = " ".join(tokens_wo_stop_words)
     return tokens_wo_stop_words
 
-def lemmatize(tokens: List) -> List:
-    lemmatizer = WordNetLemmatizer()
-    lemmatized_words = [lemmatizer.lemmatize(token) for token in tokens]
-    return lemmatized_words
 
 def stemming(tokens: List) -> List:
     stemmer = PorterStemmer()
@@ -69,15 +65,26 @@ class PandasDataset(Dataset):
 def get_batched_data(dataset: Dataset, batch_size:int = 64):
     return DataLoader(dataset, batch_size)
 
-def plot_loss_acc(loss: List, accs: List, modelname: AnyStr) -> None:
+def plot_loss_acc(loss: List, accs: List, modelname: AnyStr, plot = False) -> None:
+    plt.style.use("seaborn")
     fig, axes = plt.subplots(1,2, figsize= (12,6))
     num_of_items = len(loss)
     sns.lineplot(ax= axes[0], x= range(num_of_items), y= loss)
     sns.lineplot(ax= axes[1], x= range(num_of_items), y= accs)
-    if modelname == 'bilstm':
-        fig.savefig(fname= "./images/bilstm_loss_acc.png", dpi=300)
-    elif modelname == 'cnn':
-        fig.savefig(fname= "./images/cnn_loss_acc.png", dpi=300)
+    
+    axes[0].set_xlabel("No. of Iterations", fontdict={"fontweight":"bold"})
+    axes[1].set_xlabel("No. of Iterations", fontdict={"fontweight":"bold"})
+    axes[0].set_ylabel("Loss", fontdict={"fontweight":"bold"})
+    axes[1].set_ylabel("Validation Accuracies", fontdict={"fontweight":"bold"})
+    axes[0].set_title("Loss", fontdict={"fontweight":"bold", "fontsize":15})
+    axes[1].set_title("Validation Accuracy", fontdict={"fontweight":"bold", "fontsize":15})
+    if plot:
+        plt.show()
+    else:
+        if modelname == 'bilstm':
+            fig.savefig(fname= "./images/bilstm_loss_acc.png", dpi=300)
+        elif modelname == 'cnn':
+            fig.savefig(fname= "./images/cnn_loss_acc.png", dpi=300)
                
 def save_model(model, filepath):
     """
