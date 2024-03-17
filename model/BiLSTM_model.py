@@ -1,26 +1,18 @@
-import torch
 import torch.nn as nn
-
-def init_weights(m):
-    if isinstance(m, nn.Linear):
-        torch.nn.init.xavier_uniform_(m.weight)
-        m.bias.data.fill_(0.01)
 
 class BiLSTMModel(nn.Module):
     def __init__(self, vocabulary_size:int= 52000,
-                 embedding_dim:int= 64, hidden_size:int= 64,
+                 embedding_dim:int= 32, hidden_size:int= 16,
                  num_classes:int= 6,p:float= 0.3):
         super(BiLSTMModel, self).__init__()
         self.embedding = nn.Embedding(vocabulary_size, embedding_dim)
         self.lstm = nn.LSTM(embedding_dim, hidden_size, bidirectional=True)
         self.batchnorm = nn.BatchNorm1d(hidden_size * 2)
         self.dropout = nn.Dropout(p)
-        self.dense = nn.Sequential(nn.Linear(hidden_size*2, 64),
+        self.dense = nn.Sequential(nn.Linear(hidden_size*2, hidden_size),
                                    nn.ReLU(),
-                                   nn.Linear(64, num_classes),
+                                   nn.Linear(hidden_size, num_classes),
                                    nn.Softmax(dim=1))
-        
-        self.apply(init_weights)
     
     def forward(self, x):
         x = self.embedding(x)
