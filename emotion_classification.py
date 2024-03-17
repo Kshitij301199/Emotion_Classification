@@ -2,10 +2,11 @@
 import os
 import sys
 import json
+import pickle
 import argparse
-
+import torch
+import numpy as np
 import pandas as pd
-from tensorflow.keras.preprocessing.text import tokenizer_from_json
 from sklearn.model_selection import train_test_split
 
 from utils import tokenize, remove_stopwords, stemming, fit_tokenizer, save_model
@@ -27,8 +28,10 @@ def main():
     if args.train:
         if args.model_name.lower() == 'bilstm':
             model = BiLSTMModel()
+            lr = 0.0001
         elif args.model_name.lower() == 'cnn':
             model = CNNTextClassifier()
+            lr = 0.0005
         else:
             sys.exit(f"Enter a valid model name! {args.model_name} is not BiLSTM|CNN.")
         print(f"{'Pre-processing the data for training':-^100}")
@@ -47,10 +50,8 @@ def main():
         print(f"Train size: {len(train_data)}\tTest size: {len(test_data)}")
         
         tokenizer = fit_tokenizer(data['tokens_stemm'])
-        tokenizer_json = tokenizer.to_json()
-        # Save tokenizer JSON string to a file
-        with open('tokenizer.json', 'w', encoding='utf-8') as f:
-            f.write(json.dumps(tokenizer_json))
+        with open('tokenizer.pickle', 'wb') as handle:
+            pickle.dump(tokenizer, handle, protocol=pickle.HIGHEST_PROTOCOL)
         print("Tokenizer saved to file.")
         
         train_data['padded'] = train_data['tokens_stemm'].apply(pad_sequence, tokenizer= tokenizer)
@@ -64,8 +65,8 @@ def main():
         
         print(model)
         print(f"Number of parameters: {sum(p.numel() for p in model.parameters() if p.requires_grad)}")
-        model, losses, accs = train(model, train_batched, num_epochs= 4,
-                                    learning_rate= 0.0005,
+        model, losses, accs = train(model, train_batched, num_epochs= 6,
+                                    learning_rate= lr,
                                     class_weights= class_weights)
         plot_loss_acc(loss= losses, accs= accs, modelname= args.model_name)
         conf_mat = evaluate(model, test_batched)
@@ -78,9 +79,9 @@ def main():
     
     elif args.evaluate:
         if args.model_name.lower() == 'bilstm':
-            model = BiLSTMModel()    
+            model = torch.load("./model/bilstm.pth")
         elif args.model_name.lower() == 'cnn':
-            model = CNNTextClassifier()
+            model = torch.load("./model/cnn.pth")
         else:
             sys.exit(f"Enter a valid model name! {args.model_name} is not BiLSTM|CNN.")
         
@@ -88,9 +89,8 @@ def main():
         data.drop_duplicates(inplace= True)
         print("Read data file!")
         
-        with open('tokenizer.json', 'r', encoding='utf-8') as f:
-            tokenizer_json = f.read()
-        tokenizer = tokenizer_from_json(json.loads(tokenizer_json))
+        with open('tokenizer.pickle', 'rb') as handle:
+            tokenizer = pickle.load(handle)
 
         _, x_test, _, y_test = train_test_split(data['text'], data['label'], test_size=0.5)
         test_data = pd.concat((x_test,y_test), axis=1).reset_index()
@@ -103,9 +103,10 @@ def main():
         print("Data prepared for model!")
         
         test_dataset = PandasDataset(test_data)
-        test_batched = get_batched_data(test_dataset, batch_size= 128)
+        test_batched = get_batched_data(test_dataset, batch_size= 64)
         
         conf_mat = evaluate(model, test_batched)
+        plot_confusion_matrix(conf_matrix= conf_mat, modelname= args.model_name)
         accuracies = class_accuracy(conf_mat)
         f1_scores = class_f1_score(conf_mat)
         precisions, recalls = class_wise_precision_recall(conf_mat)
