@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
         
 class CNNTextClassifier(nn.Module):
@@ -7,7 +6,7 @@ class CNNTextClassifier(nn.Module):
                  embedding_dim:int = 32,
                  input_length:int = 100,
                  num_filters:int = 24,
-                 kernel_size:int = 5,
+                 kernel_size:int = 3,
                  hidden_units:int = 16,
                  num_classes:int = 6):
         super(CNNTextClassifier, self).__init__()
@@ -21,7 +20,7 @@ class CNNTextClassifier(nn.Module):
         self.dense = nn.Sequential(nn.Linear(num_filters, hidden_units),
                                    nn.ReLU(),
                                    nn.Linear(hidden_units, num_classes),
-                                   nn.Softmax(dim=1),
+                                #    nn.Softmax(dim=1),
         )
     
     def forward(self, x):

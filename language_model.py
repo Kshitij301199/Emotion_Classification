@@ -11,7 +11,7 @@ def train(model, train_dataloader, num_epochs:int, lr:float, lr_floor:float, cla
     criterion = nn.CrossEntropyLoss(weight= class_weights)
     optimizer = torch.optim.Adam(model.parameters(), lr= lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer,
-                                                           T_max= num_epochs*4,
+                                                           T_max= num_epochs*5,
                                                            eta_min= lr_floor)
     print(criterion)
     print(optimizer)

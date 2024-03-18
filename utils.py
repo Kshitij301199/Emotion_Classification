@@ -1,5 +1,5 @@
 from typing import List, AnyStr, Dict
-
+from itertools import product
 import torch
 import numpy as np
 from nltk.corpus import stopwords
@@ -116,7 +116,7 @@ def get_class_weights(y_train) -> torch.FloatTensor:
     class_weights = torch.FloatTensor(class_weights)
     return class_weights
 
-def split_train_val_dataloader(train_dataloader, val_size=0.25, shuffle=True, random_state=None):
+def split_train_val_dataloader(train_dataloader, val_size=0.2, shuffle=True, random_state=None):
     # Get indices for the train DataLoader
     train_indices = list(range(len(train_dataloader.dataset)))
     
@@ -146,3 +146,13 @@ def split_train_val_dataloader(train_dataloader, val_size=0.25, shuffle=True, ra
                    for dataset in val_datasets]
     
     return train_loaders, val_loaders
+
+def grid_search(parameters):
+    keys = parameters.keys()
+    values = parameters.values()
+    
+    combinations = list(product(*values))
+    
+    parameter_configurations = [{k: v for k, v in zip(keys, combination)} for combination in combinations]
+    
+    return parameter_configurations
